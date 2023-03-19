@@ -34,11 +34,20 @@ def shapes(map, image, clearance):
     image = cv2.fillPoly(image, [triangle_vertices], color=(255,255,0))
     image = cv2.polylines(image, [triangle_vertices], isClosed=True, color=(255,255,255), thickness=clearance-2)
 
-    return image, map
 
-if __name__ == '__main__':
+def main():
     map = np.zeros((250, 600))
     image = np.zeros((250, 600,3), dtype=np.uint8)
     CostToCome = np.full_like(map, np.inf)
     clearance = 5
     img, map = shapes(map, image, clearance)
+    y,x = np.where(map==0)
+    free_points = []
+    for i,j in zip(x,y):
+        free_points.append((i,j))
+    
+
+
+if __name__ == '__main__':
+    main()
+    
