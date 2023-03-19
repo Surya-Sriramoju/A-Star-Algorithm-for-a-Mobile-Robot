@@ -1,3 +1,6 @@
+'''authors : Sai Surya Sriramoju, Dhruv Sharma
+github - https://github.com/Surya-Sriramoju/A-Star-Algorithm-for-a-Mobile-Robot
+'''
 import numpy as np
 import cv2 
 from queue import PriorityQueue
@@ -55,8 +58,8 @@ def calculate_distance(node_1, node_2):
 
 def calculate_cost(new_node, current_node, node_cost, parents, step_size, goal, thresh, open):
     reached = False
-    dist = calculate_distance(new_node, current_node)
-    new_cost = node_cost[current_node] + step_size + dist
+    distance = calculate_distance(new_node, current_node)
+    new_cost = node_cost[current_node] + step_size + distance
     temp_cost = node_cost.get(new_node)
 
     if not temp_cost or (temp_cost > new_cost):
@@ -103,7 +106,7 @@ def astar(start, goal, free_points, step_size, thresh,img):
             
             if node[:2] not in visited:
                 # visited.append(node[:2])
-                print(node[:2])
+                # print(node[:2])
                 a = time.time()
                 reached, open, node_cost, parents, new_node = calculate_cost(node, current_node, node_cost, parents, step_size, goal, thresh, open)
                 
@@ -178,6 +181,7 @@ def main():
     for i in range(0,5):
         for j in range(0,5):
             img[y_goal+j, x_goal+i] = (0,0,255)
+    print("Starting the algorithm....")
     a = time.time()
     parents, visited = astar(start, goal, free_points, step_size, thresh, img)
     print('time taken to find the goal: ', time.time()-a)
