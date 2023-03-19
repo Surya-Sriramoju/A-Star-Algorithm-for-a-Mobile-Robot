@@ -3,35 +3,38 @@ import cv2
 from queue import PriorityQueue
 import time
 
-def shapes(map, image, clearance):
+def shapes(map, image, clearance, radius):
+    clearance_radius = clearance+radius
     ##hexagon##
-    clearance = clearance+2
     hexagon_vertices = [[300,50],[365,88],[365,162],[300,200],[235,162],[235,88]]
     hexagon_vertices = np.array(hexagon_vertices)
     map = cv2.fillPoly(map, [hexagon_vertices], color=255)
-    map = cv2.polylines(map, [hexagon_vertices], isClosed=True, color=255, thickness=clearance-2)
+    map = cv2.polylines(map, [hexagon_vertices], isClosed=True, color=255, thickness=clearance_radius)
     image = cv2.fillPoly(image, [hexagon_vertices], color=(255,255,0))
-    image = cv2.polylines(image, [hexagon_vertices], isClosed=True, color=(255,255,255), thickness=clearance-2)
+    image = cv2.polylines(image, [hexagon_vertices], isClosed=True, color=(255,255,255), thickness=clearance_radius)
 
     ##rectangles##
     rectangle_vertices_1 = np.array([[100,0],[100,100],[150,100],[150,0]])
     map = cv2.fillPoly(map, [rectangle_vertices_1], color=255)
-    map = cv2.polylines(map, [rectangle_vertices_1], isClosed=True, color=255, thickness=clearance-2)
+    map = cv2.polylines(map, [rectangle_vertices_1], isClosed=True, color=255, thickness=clearance_radius)
     image = cv2.fillPoly(image, [rectangle_vertices_1], color=(255,255,0))
-    image = cv2.polylines(image, [rectangle_vertices_1], isClosed=True, color=(255,255,255), thickness=clearance-2)
+    image = cv2.polylines(image, [rectangle_vertices_1], isClosed=True, color=(255,255,255), thickness=clearance_radius)
 
     rectangle_vertices_2 = np.array([[100,250],[100,150],[150,150],[150,250]])
     map = cv2.fillPoly(map, [rectangle_vertices_2], color=255)
-    map = cv2.polylines(map, [rectangle_vertices_2], isClosed=True, color=255, thickness=clearance-2)
+    map = cv2.polylines(map, [rectangle_vertices_2], isClosed=True, color=255, thickness=clearance_radius)
     image = cv2.fillPoly(image, [rectangle_vertices_2], color=(255,255,0))
-    image = cv2.polylines(image, [rectangle_vertices_2], isClosed=True, color=(255,255,255), thickness=clearance-2)
+    image = cv2.polylines(image, [rectangle_vertices_2], isClosed=True, color=(255,255,255), thickness=clearance_radius)
 
     ##triangles##
     triangle_vertices = np.array([[460,125-100],[460,125+100],[510,125]])
     map = cv2.fillPoly(map, [triangle_vertices], color=255)
-    map = cv2.polylines(map, [triangle_vertices], isClosed=True, color=255, thickness=clearance-2)
+    map = cv2.polylines(map, [triangle_vertices], isClosed=True, color=255, thickness=clearance_radius)
     image = cv2.fillPoly(image, [triangle_vertices], color=(255,255,0))
-    image = cv2.polylines(image, [triangle_vertices], isClosed=True, color=(255,255,255), thickness=clearance-2)
+    image = cv2.polylines(image, [triangle_vertices], isClosed=True, color=(255,255,255), thickness=clearance_radius)
+    image = cv2.copyMakeBorder(image, clearance_radius, clearance_radius, clearance_radius, clearance_radius, cv2.BORDER_CONSTANT, value=[255, 255, 255])
+    map = cv2.copyMakeBorder(map, clearance_radius, clearance_radius, clearance_radius, clearance_radius, cv2.BORDER_CONSTANT, value=[255])
+
     return image, map
 
 def populate_nodes(current,free_points,step_size):
@@ -103,17 +106,15 @@ def astar(start, goal, free_points, step_size, thresh,img):
                 print("Goal Reached!")
                 visited.append(new_node[:2])
                 break
-    # for i in visited:
-    #     img[i[1], i[0]] = (0,0,255)
-    #     cv2.imshow("hai", img)
-    #     if cv2.waitKey(1) & 0xFF == ord('q'):
-    #         break
 
 def main():
     map = np.zeros((250, 600))
     image = np.zeros((250, 600,3), dtype=np.uint8)
-    clearance = 5    #take input
-    img, map = shapes(map, image, clearance)
+    clearance = int(input("Enter the clearance value: "))
+    radius = int(input("Enter the robot radius: \n"))
+    step_size = int(input("Enter the step size: \n"))
+
+    img, map = shapes(map, image, clearance, radius)
     y,x = np.where(map==0)
     free_points = []
     for i,j in zip(x,y):
@@ -123,7 +124,27 @@ def main():
     for i in range(0,5):
         for j in range(0,5):
             img[35+j,35+i] = (255,255,255)
-    step_size = 5
+    action_set = [-60, -30, 0, 30, 60]
+    while True:
+        points_start = input('Enter the start_node in the format x,y,theta: ')
+        x_start = int(points_start.split(",")[0])
+        y_start = int(points_start.split(",")[1])
+        theta_start = int(points_start.split(",")[2])
+        
+        print('Enter the goal_node in the format x,y,theta: ')
+        points_goal = input()
+        x_goal = int(points_goal.split(",")[0])
+        y_goal = int(points_goal.split(",")[1])
+        theta_goal = int(points_start.split(",")[2])
+        
+        try:
+            if ((x_start, y_start) in free_points and (x_goal, y_goal) in free_points) and ((theta_start in action_set) and (theta_goal in action_set)):
+                break
+            else:
+                print("Please enter the points which are in free space and right orientation!")
+                continue
+        except:
+            print("Dimensions more than the given map, try again!")
     thresh = 1.5
     a = time.time()
     astar(start, goal, free_points, step_size, thresh, img)
