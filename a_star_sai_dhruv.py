@@ -113,10 +113,30 @@ def astar(start, goal, free_points, step_size, thresh,img):
                 break
     return parents, visited
 
-def video_save_demo(path, image):
-
-
-
+def video_save_demo(path, visited ,image, value):
+    temp = image.copy()
+    total = visited + path
+    visited_len = len(visited)
+    path_len = len(path)
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    video = cv2.VideoWriter("A_star_implementation.avi", fourcc, 1000, (image.shape[1], image.shape[0]))
+    i = 0
+    for index in range(len(total)-1):
+        if i<visited_len:
+            image[total[index][1], total[index][0]] = (0,255,0)
+        else:
+            cv2.line(image, (total[index][1], total[index][0]),(total[index+1][1], total[index+1][0]), [0,0,255], 2)
+            time.sleep(0.1)
+        temp_image = image[::-1,:,:]
+        i += 1
+        video.write(temp_image)
+        if value == 1:
+            cv2.imshow("Demo", temp_image)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    cv2.imshow("Demo", temp_image)
+    cv2.waitKey(0)
+        
 def main():
     map = np.zeros((250, 600))
     image = np.zeros((250, 600,3), dtype=np.uint8)
@@ -161,10 +181,12 @@ def main():
     a = time.time()
     parents, visited = astar(start, goal, free_points, step_size, thresh, img)
     print('time taken to find the goal: ', time.time()-a)
-    path = backtrack(parents, start, visited)
 
-    # video_save_demo()
+    path = backtrack(parents, start, visited)
+    
+    value = int(input("for viewing and saving the video press - 1, for just saving the video press - 2: "))
+
+    video_save_demo(path, visited, img, value)
 
 if __name__ == '__main__':
     main()
-    
