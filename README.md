@@ -6,7 +6,7 @@ libraries used in this algorithm
 * queue
 * time
 
-#Stepts to run the algorithm
+# Stepts to run the algorithm
 1. Enter into the directory
 2. Execute the command python a_star_sai_dhruv.py
 3. Enter the user inputs such as clearance, robot radius, step size, goal point, end point (with orientation)
