@@ -67,6 +67,16 @@ def calculate_cost(new_node, current_node, node_cost, parents, step_size, goal, 
         reached = True
     return reached, open, node_cost, parents, new_node
 
+def backtrack(parents, start, visited):
+    current_node = visited[-1]
+    parent_node = parents[current_node]
+    path = [current_node]
+    while not parent_node == start[:2]:
+        current_node = parent_node
+        parent_node = parents[current_node]
+        path.append(current_node)
+    path.append(start[:2])
+    return path[::-1]
 
 def astar(start, goal, free_points, step_size, thresh,img):
     open = PriorityQueue()
@@ -80,13 +90,8 @@ def astar(start, goal, free_points, step_size, thresh,img):
     while not reached:
 
         _, current_node = open.get()
-        # img[current_node[1], current_node[0]] = (0,0,255)
-        # cv2.imshow('hai', img)
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
-        # print(current_node)
         visited.append(current_node[:2])
-        if calculate_distance(current_node, goal) < thresh: ## Add threshold here
+        if calculate_distance(current_node, goal) < thresh:
             print("Goal Reached!")
             reached = True
             parents[goal[0:2]] = start[0:2]
@@ -106,33 +111,34 @@ def astar(start, goal, free_points, step_size, thresh,img):
                 print("Goal Reached!")
                 visited.append(new_node[:2])
                 break
+    return parents, visited
+
+def video_save_demo(path, image):
+
+
 
 def main():
     map = np.zeros((250, 600))
     image = np.zeros((250, 600,3), dtype=np.uint8)
     clearance = int(input("Enter the clearance value: "))
-    radius = int(input("Enter the robot radius: \n"))
-    step_size = int(input("Enter the step size: \n"))
+    radius = int(input("Enter the robot radius: "))
+    step_size = int(input("Enter the step size: "))
 
     img, map = shapes(map, image, clearance, radius)
     y,x = np.where(map==0)
     free_points = []
     for i,j in zip(x,y):
         free_points.append((i,j))
-    start = (10,10,30)
-    goal = (35, 35,-30)
-    for i in range(0,5):
-        for j in range(0,5):
-            img[35+j,35+i] = (255,255,255)
+    
     action_set = [-60, -30, 0, 30, 60]
+
     while True:
         points_start = input('Enter the start_node in the format x,y,theta: ')
         x_start = int(points_start.split(",")[0])
         y_start = int(points_start.split(",")[1])
         theta_start = int(points_start.split(",")[2])
         
-        print('Enter the goal_node in the format x,y,theta: ')
-        points_goal = input()
+        points_goal = input('Enter the goal_node in the format x,y,theta: ')
         x_goal = int(points_goal.split(",")[0])
         y_goal = int(points_goal.split(",")[1])
         theta_goal = int(points_start.split(",")[2])
@@ -146,9 +152,18 @@ def main():
         except:
             print("Dimensions more than the given map, try again!")
     thresh = 1.5
+    
+    start = (x_start,y_start,theta_start)
+    goal = (x_goal, y_goal,theta_goal)
+    for i in range(0,5):
+        for j in range(0,5):
+            img[y_goal+j, x_goal+i] = (0,0,255)
     a = time.time()
-    astar(start, goal, free_points, step_size, thresh, img)
-    print(time.time()-a)
+    parents, visited = astar(start, goal, free_points, step_size, thresh, img)
+    print('time taken to find the goal: ', time.time()-a)
+    path = backtrack(parents, start, visited)
+
+    # video_save_demo()
 
 if __name__ == '__main__':
     main()
