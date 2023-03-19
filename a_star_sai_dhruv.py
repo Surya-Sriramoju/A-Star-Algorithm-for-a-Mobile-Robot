@@ -2,7 +2,6 @@ import numpy as np
 import cv2 
 from queue import PriorityQueue
 import time
-from collections import defaultdict
 
 def shapes(map, image, clearance):
     ##hexagon##
@@ -33,20 +32,102 @@ def shapes(map, image, clearance):
     map = cv2.polylines(map, [triangle_vertices], isClosed=True, color=255, thickness=clearance-2)
     image = cv2.fillPoly(image, [triangle_vertices], color=(255,255,0))
     image = cv2.polylines(image, [triangle_vertices], isClosed=True, color=(255,255,255), thickness=clearance-2)
+    return image, map
 
+def populate_nodes(current,free_points,step_size):
+    nodes = []
+    actions = [-60, -30, 0, 30, 60]
+    for action in actions:
+        new_angle = current[-1] + action
+        new_x = int(current[0]+(step_size*np.cos(np.radians(new_angle))))
+        new_y = int(current[1]+(step_size*np.sin(np.radians(new_angle))))
+        
+        if (new_x, new_y) in free_points:
+            nodes.append((new_x, new_y, new_angle))
+    return nodes
+
+def calculate_distance(node_1, node_2):
+    distance = abs(np.linalg.norm(np.asarray(node_1[:2]) - np.asarray(node_2[:2])))
+    return distance
+
+def calculate_cost(new_node, current_node, node_cost, parents, step_size, goal, thresh, open):
+    reached = False
+    dist = calculate_distance(new_node, current_node)
+    new_cost = node_cost[current_node] + step_size + dist
+    temp_cost = node_cost.get(new_node)
+
+    if not temp_cost or (temp_cost > new_cost):
+        node_cost[new_node] = new_cost
+        parents[new_node[:2]] = current_node[:2]
+        open.put((new_cost,new_node))
+    if calculate_distance(goal, new_node) < thresh:
+        reached = True
+    return reached, open, node_cost, parents, new_node
+
+
+def astar(start, goal, free_points, step_size, thresh,img):
+    open = PriorityQueue()
+    open.put((0,start))
+    visited = []
+    node_cost = {}
+    parents = {}
+    node_cost[start] = 0
+    reached = False
+
+    while not reached:
+
+        _, current_node = open.get()
+        # img[current_node[1], current_node[0]] = (0,0,255)
+        # cv2.imshow('hai', img)
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
+        # print(current_node)
+        visited.append(current_node[:2])
+        if calculate_distance(current_node, goal) < thresh: ## Add threshold here
+            print("Goal Reached!")
+            reached = True
+            parents[goal[0:2]] = start[0:2]
+            break
+        new_nodes = populate_nodes(current_node,free_points,step_size)
+        # print(new_nodes)
+        for node in new_nodes:
+            # print(node)
+            
+            if node[:2] not in visited:
+                # visited.append(node[:2])
+                print(node[:2])
+                a = time.time()
+                reached, open, node_cost, parents, new_node = calculate_cost(node, current_node, node_cost, parents, step_size, goal, thresh, open)
+                
+            if reached:
+                print("Goal Reached!")
+                visited.append(new_node[:2])
+                break
+    # for i in visited:
+    #     img[i[1], i[0]] = (0,0,255)
+    #     cv2.imshow("hai", img)
+    #     if cv2.waitKey(1) & 0xFF == ord('q'):
+    #         break
 
 def main():
     map = np.zeros((250, 600))
     image = np.zeros((250, 600,3), dtype=np.uint8)
-    CostToCome = np.full_like(map, np.inf)
-    clearance = 5
+    clearance = 5    #take input
     img, map = shapes(map, image, clearance)
     y,x = np.where(map==0)
     free_points = []
     for i,j in zip(x,y):
         free_points.append((i,j))
-    
-
+    start = (10,10,30)
+    goal = (35, 35,-30)
+    for i in range(0,5):
+        for j in range(0,5):
+            img[35+j,35+i] = (255,255,255)
+    step_size = 5
+    thresh = 1.5
+    a = time.time()
+    astar(start, goal, free_points, step_size, thresh, img)
+    print(time.time()-a)
 
 if __name__ == '__main__':
     main()
