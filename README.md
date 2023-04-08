@@ -4,6 +4,7 @@ Dependencies required:
 * Ubuntu 20.04
 * Gazebo
 * ROS Noetic
+* turtlebot3 packages
 * Python packages: Numpy, opencv, queue, time
 
 libraries used in this algorithm
@@ -13,7 +14,8 @@ libraries used in this algorithm
 * time
 
 # Stepts to run the algorithm
-1. Enter into the directory
+1. Clone the repo
+2. Enter into the package
 2. Execute the command python a_star_sai_dhruv.py
 3. Enter the user inputs such as clearance, robot radius, step size, goal point, end point (with orientation)
 4. Once the goal is reached, the program asks for the user to either to demo the output or just save, pressing 1 will display as well as save the video. Pressing 2 will just save the video.
