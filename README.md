@@ -1,5 +1,11 @@
 # A-Star-Algorithm-for-a-Mobile-Robot
 
+Dependencies required:
+* Ubuntu 20.04
+* Gazebo
+* ROS Noetic
+* Python packages: Numpy, opencv, queue, time
+
 libraries used in this algorithm
 * numpy
 * opencv
